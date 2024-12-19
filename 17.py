@@ -74,7 +74,11 @@ print(program)
 fixed_part =          '100000010101000101'
 fixed_part = '110010101100100'
 fixed_part = ''
-suffixes = ['25055', '25057', '62544', '25052']
+suffixes = ['1 3 2 7 5 6 0 2 5 0 5 7']
+suffixes = ['2 5 0 5 2', '2 5 0 5 5', '2 5 0 5 7', '6 2 5 4 4']
+suffixes = ['4025057', '6025057', '4025055', '6025055', '4025052', '6025052']
+suffixes = ['1 3 2 7 5 6 0 2 5 0 5 7', '1 3 2 7 5 6 0 2 5 0 5 5', '1 3 2 7 5 6 0 2 5 0 5 2']
+suffixes = [s.replace(' ', '') for s in suffixes]
 # convert suffixes to 3 bit binary (each digit goes to 3 bit binary)
 new_suffixes = []
 for suffix in suffixes:
@@ -89,7 +93,9 @@ print(suffixes)
 freqs = defaultdict(set)
 last_5 = set()
 
-for i in range(1000000):
+successes = []
+
+for i in range(5000):
     # if i % 100000 == 0:
     #     print(i)
     # prefix = format(i, '03b')
@@ -131,7 +137,7 @@ for i in range(1000000):
                         output.append(regs[operand - 4] % 8)
                     # if output is not prefix of program
                     if output != program[:len(output)]:
-                        n = 10
+                        n = 16
                         if output[:n] == program[:n]:
                             # cut off last 3 of bin(reg_a)
                             # x = bin(reg_a)[:-3]
@@ -139,12 +145,12 @@ for i in range(1000000):
                             # if last part of x is 100000010101000101, remove that
                             if x[-len(fixed_part):] == fixed_part:
                                 x = x[:-len(fixed_part)]
-                            x = x[2:].zfill(45)
+                            x = x[2:].zfill(60)
                             # print x in groups of 3 space sep
                             y = ' '.join([str(int(x[i:i+3], 2)) for i in range(0, len(x), 3)]) + ' | ' + x
                             print(y)
                             a = ''.join([str(int(x[i:i+3], 2)) for i in range(0, len(x), 3)])
-                            last_5.add(a[-5:])
+                            last_5.add(a[-7:])
                             for i, z in enumerate([int(x[i:i+3], 2) for i in range(0, len(x), 3)]):
                                 freqs[i].add(z)
                             # print('11:', output[6])
@@ -172,7 +178,8 @@ for i in range(1000000):
                 break
 
         if output == program:
-            print(reg_a)
-            break
+            successes.append(reg_a)
 print(freqs)
 print(last_5)
+
+print(min(successes))
