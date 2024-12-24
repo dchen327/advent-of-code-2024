@@ -87,19 +87,25 @@ for r in range(2):
                 best_paths_dpad[s] = shortest_paths(s, False)
 
 # best_paths2_dpad maps a pair of buttons to length of shortest possible 2 deep path
-# for r in range(2):
-#     for c in range(3):
-#         for r2 in range(2):
-#             for c2 in range(3):
-#                 if dpad[r][c] == '' or dpad[r2][c2] == '':
-#                     continue
-#                 s = dpad[r][c] + dpad[r2][c2]
-#                 for path in best_paths_dpad[s]:
-#                     best_paths2_dpad[s] = min(best_paths2_dpad.get(s, float('inf')), len(path))
+for r in range(2):
+    for c in range(3):
+        for r2 in range(2):
+            for c2 in range(3):
+                if dpad[r][c] == '' or dpad[r2][c2] == '':
+                    continue
+                s = dpad[r][c] + dpad[r2][c2]
+                shortest_path = float('inf')
+                for path in best_paths_dpad[s]:
+                    path_len = 0
+                    path = 'A' + path
+                    for i in range(len(path) - 1):
+                        s2 = path[i:i+2]
+                        path_len += min(map(len, best_paths_dpad[s2]))
+                    shortest_path = min(shortest_path, path_len)
+                    best_paths2_dpad[s] = shortest_path
 
 @cache
 def get_next_codes(code, is_numpad=False):
-    code = f'A{code}'
     res = ['']
     for i in range(len(code) - 1):
         s = code[i:i+2]
@@ -114,16 +120,28 @@ def get_next_codes(code, is_numpad=False):
 total_complexity = 0
 for code in codes:
     num = int(code[:-1])
+    code = f'A{code}'
 
-    x = get_next_codes(code, True)
-    y = sum([get_next_codes(code, False) for code in x], [])
-    # remove non min len seqs
-    y = [x for x in y if len(x) == min(map(len, y))]
-    # print(y)
-    z = sum([get_next_codes(code, False) for code in y], [])
-    # print counter of lens
-    print(len(min(z, key=len)), num)
-    total_complexity += num * len(min(z, key=len))
+    next_codes = get_next_codes(code, True)
+    min_sum = float('inf')
+    for x in next_codes:
+        sum_ = 0
+        x = 'A' + x
+        for i in range(len(x) - 1):
+            s = x[i:i+2]
+            sum_ += best_paths2_dpad[s]
+        min_sum = min(min_sum, sum_)
+    print(min_sum, num)
+    total_complexity += num * min_sum
+    # y = sum([get_next_codes(code, False) for code in x], [])
+    # # remove non min len seqs
+    # y = [x for x in y if len(x) == min(map(len, y))]
+    # # print(y)
+    # z = sum([get_next_codes(code, False) for code in y], [])
+    # # print counter of lens
+    # print(len(min(z, key=len)), num)
+    # total_complexity += num * len(min(z, key=len))
+    # break
 print(total_complexity)
 
 # print(shortest_paths('A4', True))
