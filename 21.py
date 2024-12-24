@@ -1,5 +1,5 @@
 import sys
-sys.stdin = open('input.txt', 'r')
+sys.stdin = open('input2.txt', 'r')
 from collections import deque, Counter
 from itertools import product
 from functools import cache
@@ -29,10 +29,20 @@ for r in range(2):
     for c in range(3):
         dpad_to_rc[dpad[r][c]] = (r, c)
 
-def shortest_paths(s, pad, pad_to_rc):
+# store best paths for a given pair of buttons
+best_paths_numpad = {}
+best_paths_dpad = {}
+best_paths2_dpad = {}
+
+
+def shortest_paths(s, is_numpad):
     ''' s is a string of digits '''
-    if len(s) < 2:
-        return ['']
+    if is_numpad:
+        pad = numpad
+        pad_to_rc = numpad_to_rc
+    else:
+        pad = dpad
+        pad_to_rc = dpad_to_rc
     sr, sc = pad_to_rc[s[0]]
     er, ec = pad_to_rc[s[1]]
     target_dist = abs(sr - er) + abs(sc - ec)
@@ -47,32 +57,92 @@ def shortest_paths(s, pad, pad_to_rc):
     queue = deque([(sr, sc, 0, '')])
     while queue:
         r, c, dist, path = queue.popleft()
-        if (r, c) == (er, ec) and dist == target_dist:
+        if (r, c) == (er, ec):
             paths.append(path + 'A')
             continue
     
         for dir_idx, (dr, dc) in enumerate(dirs):
             nr, nc = r + dr, c + dc
-            if 0 <= nr < R and 0 <= nc < C and numpad[nr][nc] != '':
-                if dist < target_dist:
-                    queue.append((nr, nc, dist + 1, path + dir_to_symbol[dir_idx]))
+            if 0 <= nr < R and 0 <= nc < C and numpad[nr][nc] != '' and dist < target_dist:
+                queue.append((nr, nc, dist + 1, path + dir_to_symbol[dir_idx]))
     
-    # take product with paths of s[1:]
-    next_paths = shortest_paths(s[1:], pad, pad_to_rc)
-    return [p1 + p2 for p1, p2 in product(paths, next_paths)]
+    return paths
+
+for r in range(4):
+    for c in range(3):
+        for r2 in range(4):
+            for c2 in range(3):
+                if numpad[r][c] == '' or numpad[r2][c2] == '':
+                    continue
+                s = numpad[r][c] + numpad[r2][c2]
+                best_paths_numpad[s] = shortest_paths(s, True)
+
+for r in range(2):
+    for c in range(3):
+        for r2 in range(2):
+            for c2 in range(3):
+                if dpad[r][c] == '' or dpad[r2][c2] == '':
+                    continue
+                s = dpad[r][c] + dpad[r2][c2]
+                best_paths_dpad[s] = shortest_paths(s, False)
+
+# best_paths2_dpad maps a pair of buttons to length of shortest possible 2 deep path
+# for r in range(2):
+#     for c in range(3):
+#         for r2 in range(2):
+#             for c2 in range(3):
+#                 if dpad[r][c] == '' or dpad[r2][c2] == '':
+#                     continue
+#                 s = dpad[r][c] + dpad[r2][c2]
+#                 for path in best_paths_dpad[s]:
+#                     best_paths2_dpad[s] = min(best_paths2_dpad.get(s, float('inf')), len(path))
+
+@cache
+def get_next_codes(code, is_numpad=False):
+    code = f'A{code}'
+    res = ['']
+    for i in range(len(code) - 1):
+        s = code[i:i+2]
+        p1 = best_paths_numpad[s] if is_numpad else best_paths_dpad[s]
+        new_res = []
+        for x in res:
+            for y in p1:
+                new_res.append(x + y)
+        res = new_res
+    return res
+
+total_complexity = 0
+for code in codes:
+    num = int(code[:-1])
+
+    x = get_next_codes(code, True)
+    y = sum([get_next_codes(code, False) for code in x], [])
+    # remove non min len seqs
+    y = [x for x in y if len(x) == min(map(len, y))]
+    # print(y)
+    z = sum([get_next_codes(code, False) for code in y], [])
+    # print counter of lens
+    print(len(min(z, key=len)), num)
+    total_complexity += num * len(min(z, key=len))
+print(total_complexity)
+
+# print(shortest_paths('A4', True))
+# print(shortest_paths('A^A', False))
 
 # total_complexity = 0
 # for code in codes:
 #     num = int(code[:-1])
-#     p1 = shortest_paths(f'A{code}', numpad, numpad_to_rc)
-#     p2_list = sum([shortest_paths(f'A{x}', dpad, dpad_to_rc) for x in p1], [])
-#     p3 = sum([shortest_paths(f'A{x}', dpad, dpad_to_rc) for x in p2_list], [])
+#     p1 = shortest_paths(f'A{code}', True)
+#     p1 = [x for x in p1 if len(x) <= min(map(len, p1))]
+#     p2 = sum([shortest_paths(f'A{x}', False) for x in p1], [])
+#     p2 = [x for x in p2 if len(x) <= min(map(len, p2))]
+#     p3 = sum([shortest_paths(f'A{x}', False) for x in p2], [])
 #     shortest_p3 = min(p3, key=len)
 #     print(code, len(p3[0]), num)
 #     total_complexity += num * len(p3[0])
 
 # print(total_complexity)
 
-p = shortest_paths('A<A^A', dpad, dpad_to_rc)
-len_counts = Counter(map(len, p))
-print(len_counts)
+'''
+456A is wrong (66 instead of 64)
+'''
