@@ -86,6 +86,9 @@ for r in range(2):
                 s = dpad[r][c] + dpad[r2][c2]
                 best_paths_dpad[s] = shortest_paths(s, False)
 
+for k, v in best_paths_dpad.items():
+    print(k, v)
+
 # best_paths2_dpad maps a pair of buttons to length of shortest possible 2 deep path
 for r in range(2):
     for c in range(3):
