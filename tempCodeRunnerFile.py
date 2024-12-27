@@ -1,2 +1,4 @@
 
-# print(shortest_paths('A<A^A>^^AvvvA', dpad, dpad_to_rc)
+# print(bin(x)[2:].zfill(46))
+# print(bin(y)[2:].zfill(46))
+# print(bin(z)[2:].zfill(46))
