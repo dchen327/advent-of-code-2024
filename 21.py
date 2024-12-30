@@ -86,8 +86,12 @@ for r in range(2):
                 s = dpad[r][c] + dpad[r2][c2]
                 best_paths_dpad[s] = shortest_paths(s, False)
 
-for k, v in best_paths_dpad.items():
-    print(k, v)
+# for k, v in best_paths_dpad.items():
+#     print(k, v)
+#     if len(v) > 1:
+#         for x in v:
+#             i = 0
+#             print(sum(len(best_paths_dpad[x[i:i+2]]) for i in range(len(x) - 2)))
 
 # best_paths2_dpad maps a pair of buttons to length of shortest possible 2 deep path
 for r in range(2):
@@ -119,6 +123,12 @@ def get_next_codes(code, is_numpad=False):
                 new_res.append(x + y)
         res = new_res
     return res
+
+for pair in best_paths_dpad:
+    next_ = get_next_codes(pair, False)
+    for code in next_:
+        print(pair, get_next_codes(code, False))
+quit()
 
 total_complexity = 0
 for code in codes:
